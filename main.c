@@ -23,6 +23,7 @@ int main()
         printf("|             VENDA DE INGRESSOS DE SHOW              |\n");
         printf("-------------------------------------------------------\n");
         listarShows(); // Exibe os shows disponíveis
+        comprarIngresso();
     } 
     else if (n == 2) 
     {
