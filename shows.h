@@ -16,4 +16,7 @@ void excluirShow();
 void alterarShow();
 void listarShows();
 
+// Função para comprar ingresso
+void comprarIngresso();
+
 #endif
