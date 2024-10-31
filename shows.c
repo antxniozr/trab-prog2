@@ -35,7 +35,7 @@ void cadastrarShow()
     printf("Quantidade de ingressos disponiveis: ");
     scanf("%d", &show.ingressos);
 
-    fprintf(arquivo, "%d | %s | %s | %s | %d\n", show.codigo, show.nome, show.artista, show.data, show.ingressos);
+    fprintf(arquivo, "%d|%s|%s|%s|%d\n", show.codigo, show.nome, show.artista, show.data, show.ingressos);
     fclose(arquivo);
     printf("Show cadastrado com sucesso!\n");
 }
@@ -57,10 +57,10 @@ void excluirShow()
 
     Show show;
     int encontrado = 0;
-    while (fscanf(arquivo, "%d | %49[^|] | %49[^|] | %19[^|] | %d\n", &show.codigo, show.nome, show.artista, show.data, &show.ingressos) != EOF) {
+    while (fscanf(arquivo, "%d|%49[^|]|%49[^|]|%19[^|]|%d\n", &show.codigo, show.nome, show.artista, show.data, &show.ingressos) != EOF) {
         if (show.codigo != codigo) 
         {
-            fprintf(temp, "%d | %s | %s | %s | %d\n", show.codigo, show.nome, show.artista, show.data, show.ingressos);
+            fprintf(temp, "%d|%s|%s|%s|%d\n", show.codigo, show.nome, show.artista, show.data, show.ingressos);
         } 
         else 
         {
@@ -99,7 +99,7 @@ void alterarShow()
 
     Show show;
     int encontrado = 0;
-    while (fscanf(arquivo, "%d% | 49[^|] | %49[^|] | %19[^|] | %d\n", &show.codigo, show.nome, show.artista, show.data, &show.ingressos) != EOF) 
+    while (fscanf(arquivo, "%d|%49[^|]|%49[^|]|%19[^|]|%d\n", &show.codigo, show.nome, show.artista, show.data, &show.ingressos) != EOF) 
     {
         if (show.codigo == codigo) 
         {
@@ -120,7 +120,7 @@ void alterarShow()
             printf("Nova Quantidade de ingressos disponiveis: ");
             scanf("%d", &show.ingressos);
         }
-        fprintf(temp, "%d | %s | %s | %s | %d\n", show.codigo, show.nome, show.artista, show.data, show.ingressos);
+        fprintf(temp, "%d|%s|%s|%s|%d\n", show.codigo, show.nome, show.artista, show.data, show.ingressos);
     }
 
     fclose(arquivo);
@@ -151,10 +151,74 @@ void listarShows()
     Show show;
     printf("LISTA DE SHOWS DISPONIVEIS:\n");
     printf("-------------------------------------------------------\n");
-    while (fscanf(arquivo, "%d | %49[^|] | %49[^|] | %19[^|] | %d\n", &show.codigo, show.nome, show.artista, show.data, &show.ingressos) != EOF) 
+    while (fscanf(arquivo, "%d|%49[^|]|%49[^|]|%19[^|]|%d\n", &show.codigo, show.nome, show.artista, show.data, &show.ingressos) != EOF) 
     {
         printf("Codigo: %d\nNome: %s\nArtista/Banda: %s\nData: %s\nIngressos: %d\n", show.codigo, show.nome, show.artista, show.data, show.ingressos);
         printf("-------------------------------------------------------\n");
     }
     fclose(arquivo);
+}
+
+void comprarIngresso()
+{
+    int cod_compra, n_ing;    
+    printf("Digite o codigo do show que deseja comprar: ");
+    scanf("%d", &cod_compra);
+    printf("Quantos ingressos deseja comprar? ");
+    scanf("%d", &n_ing);
+
+    FILE *arquivo = fopen("shows.txt", "r");
+    FILE *temp = fopen("temp.txt", "w");
+    
+    if (arquivo == NULL || temp == NULL) 
+    {
+        printf("Erro ao abrir o arquivo.\n");
+        return;
+    }
+
+    Show show;
+    int encontrado = 0; // Marca se o show foi encontrado
+    int ingressos_disponiveis = 0; // Marca se a compra pode ser realizada
+
+    // Percorre o arquivo para buscar o show e atualizar o número de ingressos
+    while (fscanf(arquivo, "%d|%49[^|]|%49[^|]|%19[^|]|%d\n", &show.codigo, show.nome, show.artista, show.data, &show.ingressos) != EOF) {
+        if (show.codigo == cod_compra) 
+        {
+            encontrado = 1;
+            if (show.ingressos <= 0) 
+            {
+                printf("Nao ha mais ingressos disponiveis para este show.\n");
+                ingressos_disponiveis = 0;
+            } 
+            else if (show.ingressos < n_ing) 
+            {
+                printf("Quantidade insuficiente de ingressos. Apenas %d ingressos disponiveis.\n", show.ingressos);
+                ingressos_disponiveis = 0;
+            } 
+            else 
+            {
+                show.ingressos -= n_ing;
+                printf("Compra realizada com sucesso! Ingressos restantes: %d\n", show.ingressos);
+                ingressos_disponiveis = 1;
+            }
+        }
+        
+        // Escreve o show no arquivo temporário, com ingressos atualizados, se aplicável
+        fprintf(temp, "%d|%s|%s|%s|%d\n", show.codigo, show.nome, show.artista, show.data, show.ingressos);
+    }
+
+    fclose(arquivo);
+    fclose(temp);
+
+    // Substitui o arquivo original pelo arquivo temporário atualizado
+    if (encontrado && ingressos_disponiveis) 
+    {
+        remove("shows.txt");
+        rename("temp.txt", "shows.txt");
+    } 
+    else if (!encontrado) 
+    {
+        printf("Show nao encontrado.\n");
+        remove("temp.txt"); // Remove o arquivo temporário se o show não for encontrado
+    }
 }
